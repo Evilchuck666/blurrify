@@ -14,7 +14,7 @@ Perfect for anonymizing driving footage, car meets, or any video where license p
 
 - Python 3.8+
 - FFmpeg
-- MediaInfo (system tool)
+- MediaInfo
 - Python packages:
   - `opencv-python`
   - `tqdm`
