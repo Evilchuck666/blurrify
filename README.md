@@ -40,6 +40,9 @@ Run this one-liner in your terminal to install Blurrify:
 bash <(curl -s https://raw.githubusercontent.com/Evilchuck666/blurrify/main/install.sh)
 ```
 
+> ⚠️ **Security tip:** This script modifies your system (e.g. `~/.bashrc`, creates folders, and installs files).  
+> If you're unsure, [review the source code](https://github.com/Evilchuck666/blurrify/blob/main/install.sh) before executing it.
+
 ---
 
 ## 📁 Folder Structure
