@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b8502c40-2ce6-48a4-9c47-2b42cd3f1489" alt="Blurrify logo" width="256"/>
+</p>
+
 # Blurrify
 
 **Blurrify** is a Python-based automation tool for **blurring license plates** in video footage. It splits videos into segments, extracts frames, applies license plate detection using a Haar Cascade model, blurs detected areas, and rebuilds the final video with synchronized audio.
