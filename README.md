@@ -33,6 +33,11 @@ ffmpeg -version
 mediainfo --version
 ```
 
+### Download and install Blurrify:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/Evilchuck666/blurrify/main/install_blurrify.sh)
+```
+
 ---
 
 ## 📁 Folder Structure
