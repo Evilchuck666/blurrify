@@ -14,7 +14,7 @@ fi
 curl -L https://raw.githubusercontent.com/Evilchuck666/blurrify/main/blurrify.py -o ~/.local/bin/blurrify
 
 # 4. Make it executable
-chmod +x ~/.local/bin/blurrify.py
+chmod +x ~/.local/bin/blurrify
 
 # 5. Create ~/.config/blurrify/assets
 mkdir -p ~/.config/blurrify/assets
