@@ -33,7 +33,9 @@ ffmpeg -version
 mediainfo --version
 ```
 
-### Download and install Blurrify:
+## 🧪 Quick Install
+
+Run this one-liner in your terminal to install Blurrify:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Evilchuck666/blurrify/main/install.sh)
 ```
