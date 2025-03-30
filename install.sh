@@ -11,7 +11,7 @@ if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc; then
 fi
 
 # 3. Download blurrify.py to ~/.local/bin
-curl -L https://raw.githubusercontent.com/Evilchuck666/blurrify/main/blurrify.py -o ~/.local/bin/blurrify.py
+curl -L https://raw.githubusercontent.com/Evilchuck666/blurrify/main/blurrify.py -o ~/.local/bin/blurrify
 
 # 4. Make it executable
 chmod +x ~/.local/bin/blurrify.py
