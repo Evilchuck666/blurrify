@@ -1,22 +1,22 @@
 # Blurrify
 
-**Blurrify** es un script en Python que automatiza el proceso de desenfocar (blur) vídeos dividiéndolos en clips, extrayendo frames, aplicando detección de rostros, y volviendo a unirlos con el audio original.
+**Blurrify** is a Python script that automates the process of **blurring license plates** in videos. It splits the video into smaller clips, extracts frames, detects plates using a Haar Cascade model, applies blur, then reassembles everything with the original audio.
 
-Ideal para proteger identidades o censurar contenido sensible en vídeos de forma automatizada.
+Ideal for protecting identities or anonymizing vehicles in driving videos, car meets, road footage, etc.
 
 ---
 
-## 🧰 Requisitos
+## 🔧 Requirements
 
-- Python 3.8 o superior
+- Python 3.8+
 - FFmpeg
 - OpenCV
-- `pymediainfo`
-- `tqdm`
-- `MediaInfo` (dependencia de sistema, no solo Python)
-- Modelo Haar XML para detección de rostros
+- [`pymediainfo`](https://pypi.org/project/pymediainfo/)
+- [`tqdm`](https://pypi.org/project/tqdm/)
+- MediaInfo (system dependency, not Python-only)
+- A trained Haar Cascade model for license plate detection (e.g. `haarcascade_russian_plate_number.xml`)
 
-Instala los módulos de Python necesarios con:
+### Install Python dependencies:
 
 ```bash
 pip install opencv-python tqdm pymediainfo
