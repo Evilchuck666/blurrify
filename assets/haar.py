@@ -42,7 +42,7 @@ def main():
     desc = "Blurring"
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         futures = {executor.submit(process_image, path, args.model): path for path in image_files}
-        pbar = tqdm(total=len(image_files), desc=f"{desc:<35}", ncols=90, bar_format="{desc}{bar}| {percentage:3.0f}%")
+        pbar = tqdm(total=len(image_files), desc=f"{desc:<30}", ncols=75, bar_format="{desc}{bar}| {percentage:3.0f}%")
         for _ in as_completed(futures):
             pbar.update(1)
 
