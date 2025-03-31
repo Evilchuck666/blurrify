@@ -14,6 +14,7 @@ from tqdm import tqdm
 BLUR_SCRIPT = "haar.py"
 CONCAT_CLIPS = "input.txt"
 MODEL = "model.xml"
+PROCESSED = "processed.json"
 
 AUDIO_EXT = "FLAC"
 FRAME_EXT = "BMP"
@@ -53,6 +54,19 @@ def load_config():
             config = json.load(f)
     return config
 
+def load_processed_videos():
+    processed_path = os.path.join(DEFAULTS["ASSETS_DIR"], PROCESSED)
+    if os.path.exists(processed_path):
+        with open(processed_path, "r") as f:
+            return set(json.load(f))
+    return set()
+
+def save_processed_videos(basename, processed_videos):
+    processed_videos.add(basename)
+    processed_path = os.path.join(DEFAULTS["ASSETS_DIR"], PROCESSED)
+    with open(processed_path, "w") as f:
+        f.write(json.dumps(sorted(processed_videos), indent=4))
+
 conf = load_config()
 
 def prepare_directories():
@@ -64,11 +78,13 @@ def remove_files(directory, pattern="*"):
         with contextlib.suppress(Exception):
             os.remove(file)
 
-def clean():
-    print("\n######## Deleting temporary files (please wait...) ########")
+def clean(print_msg=True):
+    if print_msg:
+        print("\n######## Deleting temporary files (please wait...) ########")
     remove_files(conf["ASSETS_DIR"], f"{CONCAT_CLIPS}")
     remove_files(conf["TMP_DIR"])
-    print("######## DONE ########")
+    if print_msg:
+        print("######## DONE ########")
 
 def get_video_duration(video_path):
     return float(MediaInfo.parse(video_path).tracks[0].duration) / 1000
@@ -211,16 +227,20 @@ def process_clips():
         join_frames(clip_basename)
 
 def process_videos():
+    processed_videos = load_processed_videos()
     for file in sorted(glob.glob(os.path.join(conf["INPUT_DIR"], f"*.{MP4_EXT}"))):
         basename = os.path.basename(file)
-        print(f"\n######## Processing {basename} ########")
-        extract_audio(basename)
-        create_clips(basename)
-        process_clips()
-        concat_clips()
-        mux(basename)
+        if basename not in processed_videos:
+            print(f"\n######## Processing {basename} ########")
+            extract_audio(basename)
+            create_clips(basename)
+            process_clips()
+            concat_clips()
+            mux(basename)
+            save_processed_videos(basename, processed_videos)
 
 def main():
+    clean(False)
     prepare_directories()
     process_videos()
     clean()
