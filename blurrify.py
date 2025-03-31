@@ -142,7 +142,7 @@ def create_clips(basename):
     ]
     ffmpeg(
         cmd, total_duration=duration, pattern=r"time=(\d+:\d+:\d+\.\d+)",
-        value_parser=parse_time, desc=f"Creating 10 clips"
+        value_parser=parse_time, desc=f"Creating clips"
     )
 
 def extract_frames(clip_basename):
