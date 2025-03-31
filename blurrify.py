@@ -19,7 +19,6 @@ PROCESSED = "processed.json"
 AUDIO_EXT = "FLAC"
 FRAME_EXT = "BMP"
 MP4_EXT = "MP4"
-MKV_EXT = "MKV"
 TS_EXT = "TS"
 
 FRAME_PATTERN = f"FRAME_%09d.{FRAME_EXT}"
@@ -208,11 +207,13 @@ def mux(basename):
     basename_noext = os.path.splitext(basename)[0]
     input_file = os.path.join(conf["TMP_DIR"], f"VIDEO.{TS_EXT}")
     audio_file = os.path.join(conf["TMP_DIR"], f"{basename_noext}.{AUDIO_EXT}")
-    output_file = os.path.join(conf["OUTPUT_DIR"], f"{basename_noext}.{MKV_EXT}")
+    output_file = os.path.join(conf["OUTPUT_DIR"], f"{basename_noext}.{MP4_EXT}")
     total_duration = get_video_duration(input_file)
     cmd = [
-        "ffmpeg", "-i", input_file, "-i", audio_file, "-c", "copy", "-map", "0:v:0", "-map", "1:a:0",
-        "-shortest", output_file, "-y", "-progress", "pipe:1", "-nostats", "-hide_banner"
+        "ffmpeg", "-i", input_file, "-i", audio_file, "-c:v", "hevc_nvenc",
+        "-cq", "16", "-preset", "p3", "-c:a", "aac", "-b:a", "320k", "-map",
+        "0:v:0", "-map", "1:a:0", "-shortest", output_file, "-y",
+        "-progress", "pipe:1", "-nostats", "-hide_banner"
     ]
     ffmpeg(
         cmd, total_duration=total_duration, pattern=r"time=(\d+:\d+:\d+\.\d+)",
@@ -230,14 +231,15 @@ def process_videos():
     processed_videos = load_processed_videos()
     for file in sorted(glob.glob(os.path.join(conf["INPUT_DIR"], f"*.{MP4_EXT}"))):
         basename = os.path.basename(file)
-        if basename not in processed_videos:
-            print(f"\n######## Processing {basename} ########")
-            extract_audio(basename)
-            create_clips(basename)
-            process_clips()
-            concat_clips()
-            mux(basename)
-            save_processed_videos(basename, processed_videos)
+        if basename in processed_videos:
+            continue
+        print(f"\n######## Processing {basename} ########")
+        extract_audio(basename)
+        create_clips(basename)
+        process_clips()
+        concat_clips()
+        mux(basename)
+        save_processed_videos(basename, processed_videos)
 
 def main():
     clean(False)
