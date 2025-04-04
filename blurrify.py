@@ -31,6 +31,26 @@ DEFAULTS = {
     "TMP_DIR": os.path.expanduser("~/.cache/blurrify/tmp"),
 }
 
+def test_encoder(encoder):
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
+                "nullsrc", "-t", "1", "-c:v", encoder, "-f", "null", "-"
+            ],
+            capture_output=True, text=True
+        )
+        return result.returncode == 0
+    except subprocess.SubprocessError:
+        return False
+
+def detect_video_codec():
+    candidates = ["hevc_nvenc", "hevc_amf", "hevc_qsv", "libx265"]
+    for encoder in candidates:
+        if test_encoder(encoder):
+            return encoder
+    return "libx265"
+
 def prompt_config():
     config = {}
     for key in list(DEFAULTS.keys()):
@@ -40,6 +60,7 @@ def prompt_config():
     return config
 
 def save_config(config):
+    config["VIDEO_CODEC"] = detect_video_codec()
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
     with open(CONFIG_PATH, "w") as f:
         f.write(json.dumps(config, indent=4))
@@ -51,6 +72,9 @@ def load_config():
     else:
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
+
+        config["VIDEO_CODEC"] = detect_video_codec()
+        save_config(config)
     return config
 
 def load_processed_videos():
@@ -84,6 +108,31 @@ def clean(print_msg=True):
     remove_files(conf["TMP_DIR"])
     if print_msg:
         print("######## DONE ########")
+
+def get_codec(codec, context):
+    base_presets = {
+        "hevc_nvenc": {
+            "join_frames": ["-preset", "p1", "-qp", "0"],
+            "mux": ["-cq", "16", "-preset", "p3"]
+        },
+        "hevc_amf": {
+            "join_frames": ["-qp", "0", "-quality", "quality"],
+            "mux": ["-cq", "16", "-usage", "quality", "-quality", "quality"]
+        },
+        "hevc_qsv": {
+            "join_frames": ["-global_quality", "1", "-preset", "veryfast"],
+            "mux": ["-global_quality", "16", "-preset", "medium"]
+        },
+        "libx265": {
+            "join_frames": ["-x265-params", "qp=0", "-preset", "ultrafast"],
+            "mux": ["-crf", "16", "-preset", "medium"]
+        },
+    }
+    if codec not in base_presets:
+        raise ValueError(f"Unsupported codec: {codec}")
+    if context not in base_presets[codec]:
+        raise ValueError(f"Unsupported context: '{context}' for codec: '{codec}'")
+    return ["-c:v", codec] + base_presets[codec][context]
 
 def get_video_duration(video_path):
     return float(MediaInfo.parse(video_path).tracks[0].duration) / 1000
@@ -170,7 +219,7 @@ def join_frames(basename_clip):
     output_path = os.path.join(conf["TMP_DIR"], f"{basename_clip}")
     input_pattern = os.path.join(conf["TMP_DIR"], FRAME_PATTERN)
     cmd = [
-        "ffmpeg", "-framerate", "60", "-i", input_pattern, "-c:v", "hevc_nvenc", "-preset", "p1", "-qp", "0",
+        "ffmpeg", "-framerate", "60", "-i", input_pattern, *get_codec(conf["VIDEO_CODEC"], "join_frames"),
         "-pix_fmt", "yuv420p", output_path, "-y", "-progress", "pipe:1", "-nostats", "-hide_banner"
     ]
     ffmpeg(
@@ -210,9 +259,8 @@ def mux(basename):
     output_file = os.path.join(conf["OUTPUT_DIR"], f"{basename_noext}.{MP4_EXT}")
     total_duration = get_video_duration(input_file)
     cmd = [
-        "ffmpeg", "-i", input_file, "-i", audio_file, "-c:v", "hevc_nvenc",
-        "-cq", "16", "-preset", "p3", "-c:a", "aac", "-b:a", "320k", "-map",
-        "0:v:0", "-map", "1:a:0", "-shortest", output_file, "-y",
+        "ffmpeg", "-i", input_file, "-i", audio_file, *get_codec(conf["VIDEO_CODEC"], "mux"), "-c:a", "aac",
+        "-b:a", "320k", "-map", "0:v:0", "-map", "1:a:0", "-shortest", output_file, "-y",
         "-progress", "pipe:1", "-nostats", "-hide_banner"
     ]
     ffmpeg(
